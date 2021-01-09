@@ -20,7 +20,7 @@ func TestStatus(t *testing.T) {
 func TestDockerCreate(t *testing.T) {
 	var (
 		InstanceNum = 3
-		Image       = "debian"
+		Image       = "6d6b00c22231"
 	)
 	err := DockerCreate(InstanceNum, Image)
 	if err != nil {

@@ -8,8 +8,8 @@ import (
 
 const Usage = "A CLI Container & VM manager"
 
-func main()  {
-	app:= cli.NewApp()
+func main() {
+	app := cli.NewApp()
 	app.Name = "ldkmngr"
 	app.Usage = Usage
 	app.Commands = []cli.Command{
@@ -29,4 +29,3 @@ func main()  {
 		log.Fatal(err)
 	}
 }
-

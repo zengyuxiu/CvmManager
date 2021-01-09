@@ -99,7 +99,7 @@ func calculateCPUPercent(v *types.StatsJSON) float64 {
 	return cpuPercent
 }
 
-func DockerCreate(InstanceNum int, Image string) error {
+func DockerCreate(InstanceNum int, ImageID string) error {
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
@@ -118,7 +118,7 @@ func DockerCreate(InstanceNum int, Image string) error {
 		Cmd: strslice.StrSlice{
 			"/bin/bash",
 		},
-		Image: Image,
+		Image: ImageID,
 	}
 	HostConfig := container.HostConfig{
 		NetworkMode: "default",
