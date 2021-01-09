@@ -18,7 +18,7 @@ func init() {
 }
 
 func LxcStatus(sqliteDatabase *sql.DB) error {
-	c, err := lxd.ConnectLXDUnix("", nil)
+	c, err := lxd.ConnectLXDUnix("/var/snap/lxd/common/lxd/unix.socket", nil)
 	if err != nil {
 		log.Error(err)
 	}
@@ -57,7 +57,7 @@ func InsertStatLxc(db *sql.DB, stat *api.InstanceState, name string, time time.T
 }
 
 func LxcCreate(InstanceNumber int, ImageFingerprint string) error {
-	c, err := lxd.ConnectLXDUnix("", nil)
+	c, err := lxd.ConnectLXDUnix("/var/snap/lxd/common/lxd/unix.socket", nil)
 	if err != nil {
 		log.Error(err)
 	}
@@ -96,7 +96,7 @@ func LxcCreate(InstanceNumber int, ImageFingerprint string) error {
 }
 
 func LxcDelete() error {
-	c, err := lxd.ConnectLXDUnix("", nil)
+	c, err := lxd.ConnectLXDUnix("/var/snap/lxd/common/lxd/unix.socket", nil)
 	if err != nil {
 		log.Error(err)
 	}

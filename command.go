@@ -113,7 +113,7 @@ var statusCommand = cli.Command{
 	},
 }
 var deleteCommand = cli.Command{
-	Name:  "stat",
+	Name:  "delete",
 	Usage: "Delete Test Instance",
 	Flags: []cli.Flag{
 		cli.StringFlag{
