@@ -7,7 +7,7 @@ import (
 )
 
 func Init_DB() {
-	_ = os.Remove("stats-database.db")
+	//_ = os.Remove("stats-database.db")
 	// SQLite is a file based database.
 	file, err := os.Create("stats-database.db") // Create SQLite file
 	if err != nil {
@@ -36,7 +36,6 @@ func createDockerTable(db *sql.DB) {
 			memory_limit      integer,
 			cpu_usage         integer,
 			cpu_online        integer,
-			cpu_usage_percent float,
 			storage_write     integer,
 			storage_read      integer,
 			time_stamp        timestamp

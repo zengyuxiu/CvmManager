@@ -65,11 +65,10 @@ func InsertStatDocker(db *sql.DB, totalStat *types.StatsJSON) {
                     memory_limit,
                     cpu_usage,
                     cpu_online,
-                    cpu_usage_percent,
                     storage_write,
                     storage_read,
                     time_stamp 
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                    ) VALUES (?, ?, ?, ?, ?, ?,  ?, ?, ?)`
 	statement, err := db.Prepare(InsertSQL)
 	if err != nil {
 		log.Error(err)
@@ -77,7 +76,7 @@ func InsertStatDocker(db *sql.DB, totalStat *types.StatsJSON) {
 	_, err = statement.Exec(
 		totalStat.ID, totalStat.MemoryStats.Usage, totalStat.MemoryStats.MaxUsage,
 		totalStat.MemoryStats.Limit, totalStat.CPUStats.CPUUsage.TotalUsage,
-		uint64(totalStat.CPUStats.OnlineCPUs), calculateCPUPercent(totalStat), totalStat.StorageStats.ReadSizeBytes,
+		uint64(totalStat.CPUStats.OnlineCPUs), totalStat.StorageStats.ReadSizeBytes,
 		totalStat.StorageStats.WriteSizeBytes, totalStat.Read,
 	)
 	if err != nil {
