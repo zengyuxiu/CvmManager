@@ -5,10 +5,17 @@ import (
 	"database/sql"
 	"encoding/json"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
+	"math/rand"
+	"regexp"
 )
+
+const NameLength = 5
 
 func DockerStatus(sqliteDatabase *sql.DB) error {
 	ctx := context.Background()
@@ -35,23 +42,22 @@ func DockerStatus(sqliteDatabase *sql.DB) error {
 			log.Error(err)
 			return err
 		} else {
-			 InsertStatDocker(sqliteDatabase, &totalStat)
+			InsertStatDocker(sqliteDatabase, &totalStat)
 		}
 	}
 	return nil
 }
-
 func InsertStatDocker(db *sql.DB, totalStat *types.StatsJSON) {
-/*	id := stat.ID
-	mmr_usg := stat.MemoryStats.Usage
-	mmr_musg := stat.MemoryStats.MaxUsage
-	mmr_lmt := stat.MemoryStats.Limit
-	cpu_usg := stat.CPUStats.CPUUsage.TotalUsage
-	cpu_nln := stat.CPUStats.OnlineCPUs
-	cpu_per := calculateCPUPercent(stat)
-	str_r := stat.StorageStats.ReadSizeBytes
-	str_w := stat.StorageStats.WriteSizeBytes
-	tmstp:= stat.Read*/
+	/*	id := stat.ID
+		mmr_usg := stat.MemoryStats.Usage
+		mmr_musg := stat.MemoryStats.MaxUsage
+		mmr_lmt := stat.MemoryStats.Limit
+		cpu_usg := stat.CPUStats.CPUUsage.TotalUsage
+		cpu_nln := stat.CPUStats.OnlineCPUs
+		cpu_per := calculateCPUPercent(stat)
+		str_r := stat.StorageStats.ReadSizeBytes
+		str_w := stat.StorageStats.WriteSizeBytes
+		tmstp:= stat.Read*/
 	InsertSQL := `INSERT INTO docker_stats(
                     ID,
                     memory_usage,
@@ -71,9 +77,9 @@ func InsertStatDocker(db *sql.DB, totalStat *types.StatsJSON) {
 	_, err = statement.Exec(
 		totalStat.ID, totalStat.MemoryStats.Usage, totalStat.MemoryStats.MaxUsage,
 		totalStat.MemoryStats.Limit, totalStat.CPUStats.CPUUsage.TotalUsage,
-		uint64(totalStat.CPUStats.OnlineCPUs),calculateCPUPercent(totalStat), totalStat.StorageStats.ReadSizeBytes,
+		uint64(totalStat.CPUStats.OnlineCPUs), calculateCPUPercent(totalStat), totalStat.StorageStats.ReadSizeBytes,
 		totalStat.StorageStats.WriteSizeBytes, totalStat.Read,
-		)
+	)
 	if err != nil {
 		log.Error(err)
 	}
@@ -91,4 +97,83 @@ func calculateCPUPercent(v *types.StatsJSON) float64 {
 		cpuPercent = (cpuDelta / systemDelta) * float64(len(v.CPUStats.CPUUsage.PercpuUsage)) * 100.0
 	}
 	return cpuPercent
+}
+
+func DockerCreate(InstanceNum int, Image string) error {
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	var TestLaber = map[string]string{
+		"ContainerType": "TestContainer",
+	}
+	Config := container.Config{
+		AttachStderr: false,
+		AttachStdin:  false,
+		AttachStdout: false,
+		Tty:          true,
+		Labels:       TestLaber,
+		Cmd: strslice.StrSlice{
+			"/bin/bash",
+		},
+		Image: Image,
+	}
+	HostConfig := container.HostConfig{
+		NetworkMode: "default",
+	}
+	for i := 0; i < InstanceNum; i++ {
+		name := "test" + GetRandomString(NameLength)
+		container_created, err := cli.ContainerCreate(ctx, &Config, &HostConfig,
+			nil, nil, name)
+		if err != nil {
+			log.Error(err)
+		}
+		_, _ = cli.ContainerWait(ctx, container_created.ID, container.WaitConditionNotRunning)
+		startoption := types.ContainerStartOptions{}
+		err = cli.ContainerStart(ctx, container_created.ID, startoption)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+	return nil
+}
+func GetRandomString(n int) string {
+	str := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
+	bytes := []byte(str)
+	var result []byte
+	for i := 0; i < n; i++ {
+		result = append(result, bytes[rand.Intn(len(bytes))])
+	}
+	return string(result)
+}
+
+func DockerDelete() error {
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	for _, ctn := range containers {
+		if match, _ := regexp.Match("/test(.*)", []byte(ctn.Names[0])); match == true {
+			if err := cli.ContainerStop(ctx, ctn.ID, nil); err != nil {
+				log.Error(err)
+			}
+			_, _ = cli.ContainerWait(ctx, ctn.ID, container.WaitConditionNotRunning)
+			args := filters.NewArgs()
+			args.Add("label", "ContainerType=TestContainer")
+			_, err := cli.ContainersPrune(ctx, args)
+			if err != nil {
+				log.Error(err)
+			}
+		}
+	}
+	return nil
 }
