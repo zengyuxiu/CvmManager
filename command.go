@@ -1,6 +1,7 @@
 package main
 
 import (
+	db_api "CvmManager/db-api"
 	dockerapi "CvmManager/docker-api"
 	kvmapi "CvmManager/kvm-api"
 	lxcapi "CvmManager/lxc-api"
@@ -9,13 +10,26 @@ import (
 	"github.com/urfave/cli"
 )
 
+var initCommand = cli.Command{
+	Name:  "init",
+	Usage: "Create DB and Tables",
+	Action: func(ctx *cli.Context) {
+		db_api.Init_DB()
+		var sqliteDatabase, err = sql.Open("sqlite3", "stats-database.db")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer sqliteDatabase.Close()
+		db_api.CreateTable(sqliteDatabase)
+	},
+}
 var createCommand = cli.Command{
 	Name:  "create",
 	Usage: "Create instances",
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "i",
-			Usage: "specify instructure \"lxd\" \"docker\"",
+			Usage: "specify instructure \"lxc\" \"docker\"",
 		},
 		cli.IntFlag{
 			Name:  "n",
@@ -26,7 +40,7 @@ var createCommand = cli.Command{
 			Usage: "source image's ID(Docker)/Fingerprint(Lxc)",
 		},
 	},
-	Action: func(ctx cli.Context) error {
+	Action: func(ctx *cli.Context) error {
 		Instructure := ctx.String("i")
 		InstanceNum := ctx.Int("n")
 		Image := ctx.String("s")
@@ -57,7 +71,7 @@ var statusCommand = cli.Command{
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "i",
-			Usage: "specify instructure \"lxd\" \"docker\"",
+			Usage: "specify instructure \"lxc\" \"docker\"",
 		},
 		/*		TODO
 				cli.BoolFlag{
@@ -66,7 +80,7 @@ var statusCommand = cli.Command{
 				},*/
 	},
 	Action: func(ctx *cli.Context) error {
-		var sqliteDatabase, err = sql.Open("sqlite3", "db-api/CvmStats.db")
+		var sqliteDatabase, err = sql.Open("sqlite3", "stats-database.db")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -100,14 +114,14 @@ var statusCommand = cli.Command{
 }
 var deleteCommand = cli.Command{
 	Name:  "stat",
-	Usage: "Write the instances status to db",
+	Usage: "Delete Test Instance",
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "i",
 			Usage: "specify instructure \"lxd\" \"docker\"",
 		},
 	},
-	Action: func(ctx cli.Context) error {
+	Action: func(ctx *cli.Context) error {
 		Instructure := ctx.String("i")
 		switch Instructure {
 		case "docker":

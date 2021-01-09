@@ -13,6 +13,7 @@ func main() {
 	app.Name = "ldkmngr"
 	app.Usage = Usage
 	app.Commands = []cli.Command{
+		initCommand,
 		createCommand,
 		statusCommand,
 		deleteCommand,

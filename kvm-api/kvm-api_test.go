@@ -8,7 +8,7 @@ import (
 )
 
 func TestKvmStatus(t *testing.T) {
-	var sqliteDatabase, err = sql.Open("sqlite3", "../db-api/CvmStats.db")
+	var sqliteDatabase, err = sql.Open("sqlite3", "../db-api/testDB.db")
 	if err != nil {
 		log.Fatal(err)
 	}

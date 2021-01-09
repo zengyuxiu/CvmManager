@@ -61,7 +61,7 @@ func LxcCreate(InstanceNumber int, ImageFingerprint string) error {
 	if err != nil {
 		log.Error(err)
 	}
-	for i := 0; i <= InstanceNumber; i++ {
+	for i := 1; i <= InstanceNumber; i++ {
 		name := "test" + GetRandomString(NameLength)
 		request := api.ContainersPost{
 			Name: name,
