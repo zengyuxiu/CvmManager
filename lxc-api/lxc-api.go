@@ -105,7 +105,7 @@ func LxcDelete() error {
 		if err != nil {
 			log.Error(err)
 			return err
-		} else if match, _ := regexp.Match("test(.*)", []byte(container.Name)); match == true {
+		} else if match, _ := regexp.Match("^test(.*)", []byte(container.Name)); match == true {
 			reqState := api.InstanceStatePut{
 				Action:  "stop",
 				Timeout: -1,
