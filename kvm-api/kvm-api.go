@@ -1,6 +1,7 @@
 package kvm_api
 
 import (
+	"CvmManager/config"
 	"database/sql"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
@@ -51,4 +52,7 @@ func InsertStatKvm(db *sql.DB, stat *libvirt.DomainInfo, name string, now time.T
 		log.Error(err)
 	}
 	fmt.Print(result)
+}
+
+func CreateNetwork(config config.NetworkConfig) {
 }

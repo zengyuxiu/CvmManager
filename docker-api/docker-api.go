@@ -1,12 +1,15 @@
 package docker_api
 
 import (
+	"CvmManager/config"
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
 	_ "github.com/mattn/go-sqlite3"
@@ -176,3 +179,43 @@ func DockerDelete() error {
 	}
 	return nil
 }
+
+func NetworkCreate(NetworkConfig *config.NetworkConfig) {
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		log.Error(err)
+	}
+	for _, brd := range NetworkConfig.Body.Bridge {
+		if brd.Type == "dockerbrd" {
+			BridgeConfig := types.NetworkCreate{
+				Driver: "bridge",
+				IPAM: &network.IPAM{
+					Config: []network.IPAMConfig{
+						{
+							Subnet:  fmt.Sprintf("%s/%s", brd.Address, brd.Netmask),
+							Gateway: brd.Address,
+						},
+					},
+				},
+				Options: map[string]string{
+					"com.docker.network.bridge.name": brd.Name,
+				},
+			}
+			respond, err := cli.NetworkCreate(ctx, brd.Name, BridgeConfig)
+			if err != nil {
+				log.Error(err)
+			} else {
+				fmt.Print(respond.ID)
+			}
+		}
+	}
+}
+
+/*func NetworkConnect()  {
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		log.Error(err)
+	}
+}*/

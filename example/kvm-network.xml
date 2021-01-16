@@ -1,0 +1,10 @@
+<network>
+    <name>Network0</name>
+    <bridge name="kvmbrd0"/>
+    <forward mode="nat"/>
+    <ip address="192.168.105.1" netmask="255.255.255.0">
+        <dhcp>
+            <range start="192.168.105.2" end="192.168.105.254"/>
+        </dhcp>
+    </ip>
+</network>
